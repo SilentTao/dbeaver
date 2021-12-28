@@ -180,6 +180,7 @@
                     <property id="identifierCase" label="%dataTransfer.processor.sql.property.identifierCase.name" type="string" description="%dataTransfer.processor.sql.property.identifierCase.description" defaultValue="mixed" required="true" validValues="mixed,upper,lower" allowCustomValues="false"/>
                     <property id="upsertKeyword" label="%dataTransfer.processor.sql.property.upsertKeyword.name" type="string" description="%dataTransfer.processor.sql.property.upsertKeyword.description" defaultValue="INSERT" required="true" validValues="INSERT,INSERT ALL,UPDATE OR,UPSERT INTO,REPLACE INTO,ON DUPLICATE KEY UPDATE,ON CONFLICT" allowCustomValues="false"/>
                     <property id="insertOnConflict" label="%dataTransfer.processor.sql.property.insertOnConflict.name" type="string" description="%dataTransfer.processor.sql.property.insertOnConflict.description" defaultValue="" required="true"/>
+                    <property id="dontTransformQuotedIdentifier" label="%dataTransfer.processor.sql.property.dontTransformQuotedIdentifier.name" type="boolean" description="%dataTransfer.processor.sql.property.dontTransformQuotedIdentifier.description" defaultValue="true" required="true"/>
                 </propertyGroup>
             </processor>
             <processor

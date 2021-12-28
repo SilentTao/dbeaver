@@ -53,6 +53,7 @@ public class DataExporterSQL extends StreamExporterAbstract {
     private static final String PROP_OMIT_SCHEMA = "omitSchema";
     private static final String PROP_ROWS_IN_STATEMENT = "rowsInStatement";
     private static final String PROP_DATA_FORMAT = "nativeFormat";
+    private static final String PROP_DONT_TRANSFORM_QUOTED_IDENTIFIER = "dontTransformQuotedIdentifier";
     private static final char STRING_QUOTE = '\'';
     private static final String PROP_LINE_BEFORE_ROWS = "lineBeforeRows";
     private static final String PROP_KEYWORD_CASE = "keywordCase";
@@ -69,6 +70,7 @@ public class DataExporterSQL extends StreamExporterAbstract {
     private String tableName;
     private DBDAttributeBinding[] columns;
     private boolean oneLineEntry;
+    private boolean dontTransformQuotedIdentifier;
 
     private final String KEYWORD_INSERT_INTO = "INSERT INTO";
     private final String KEYWORD_VALUES = "VALUES";
@@ -138,6 +140,7 @@ public class DataExporterSQL extends StreamExporterAbstract {
         } catch (NumberFormatException e) {
             rowsInStatement = 10;
         }
+        dontTransformQuotedIdentifier = CommonUtils.toBoolean(properties.get(PROP_DONT_TRANSFORM_QUOTED_IDENTIFIER));
         useNativeDataFormat = CommonUtils.toBoolean(properties.get(PROP_DATA_FORMAT));
         lineBeforeRows = CommonUtils.toBoolean(properties.get(PROP_LINE_BEFORE_ROWS));
         rowDelimiter = GeneralUtils.getDefaultLineSeparator();
@@ -191,6 +194,10 @@ public class DataExporterSQL extends StreamExporterAbstract {
 
     @Override
     public void exportRow(DBCSession session, DBCResultSet resultSet, Object[] row) throws DBException, IOException {
+        NameTransformer columnsAndTableNameTransformer = dontTransformQuotedIdentifier
+                                                                ? NameTransformer.forNonQuotedCase(session.getDataSource(), columnsAndTableNamesCase)
+                                                                : NameTransformer.forCase(columnsAndTableNamesCase);
+
         PrintWriter out = getWriter();
         oneLineEntry = rowsInStatement == 1;
         int columnsSize = columns.length;
@@ -235,7 +242,7 @@ public class DataExporterSQL extends StreamExporterAbstract {
                         sqlBuffer.append(identifierCase.transform(KEYWORD_INSERT_INTO));
                     }
             }
-            sqlBuffer.append(" ").append(columnsAndTableNamesCase.transform(tableName)).append(" (");
+            sqlBuffer.append(" ").append(columnsAndTableNameTransformer.transformTableName(tableName)).append(" (");
             boolean hasColumn = false;
             for (DBDAttributeBinding column : columns) {
                 if (isSkipColumn(column)) {
@@ -245,7 +252,7 @@ public class DataExporterSQL extends StreamExporterAbstract {
                     sqlBuffer.append(',');
                 }
                 hasColumn = true;
-                sqlBuffer.append(columnsAndTableNamesCase.transform(DBUtils.getQuotedIdentifier(column)));
+                sqlBuffer.append(columnsAndTableNameTransformer.transformColumnName(DBUtils.getQuotedIdentifier(column)));
             }
             sqlBuffer.append(") ");
             sqlBuffer.append(identifierCase.transform(KEYWORD_VALUES));
